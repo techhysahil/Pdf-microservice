@@ -25,7 +25,7 @@ app.use(express.static('public'));
 
 app.use(function(req, res, next) {
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8000');
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -58,7 +58,7 @@ app.post('/combinePdf', async function(req, res) {
     },
   });
 
-  var upload = multer({ storage: storage }).array('userPhoto', 20);
+  var upload = multer({ storage: storage }).array('file', 20);
 
   
   await fsExtra.emptyDir(directory)
@@ -72,12 +72,14 @@ app.post('/combinePdf', async function(req, res) {
           return `${directory}/${file.originalname}`;
         });
         console.log('files', files);
-      
+
         merge(files,`${directory}/merged.pdf`,function(err){
           if(err) {
             return console.log(err)
           }
+
           var data =fs.readFileSync(`${directory}/merged.pdf`);
+
           res.contentType("application/pdf");
           res.status(200).send(data);
         });
@@ -87,6 +89,10 @@ app.post('/combinePdf', async function(req, res) {
     }
   });
 });
+
+app.get('/d', async function(req, res) {
+  res.status(200).download('./tmp/images/merge/output.pdf');
+})
 
 
 
@@ -133,7 +139,7 @@ app.post('/mergeImageIntoPdf', async function(req, res) {
     },
   });
 
-  var upload = multer({ storage: storage }).array('userPhoto', 20);
+  var upload = multer({ storage: storage }).array('file', 20);
 
   await fsExtra.emptyDir(directory)
   upload(req, res, async function(err) {
@@ -142,6 +148,8 @@ app.post('/mergeImageIntoPdf', async function(req, res) {
           console.log('Error uploading file.', err);
           res.status(400).send('Error uploading file.', err);
         }
+
+        console.log("req.files", req.files);
 
         let fileContent = [];
         req.files.forEach((file) => {
